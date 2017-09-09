@@ -6,6 +6,7 @@ gem 'ruby-trello'
 gem 'sinatra'
 gem 'dalli'
 gem 'rack-cache'
+gem 'rest-client'
 
 group :development, :test do
   gem 'dotenv'

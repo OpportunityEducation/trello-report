@@ -19,6 +19,7 @@ configure do
 end
 
 require File.expand_path('../facades/dashboard', __FILE__)
+require File.expand_path('../facades/new_relic', __FILE__)
 
 get '/' do
   cache_control :public, max_age: 1800
@@ -26,4 +27,12 @@ get '/' do
   @dashboard = Dashboard.new
 
   erb :index
+end
+
+get '/new-relic' do
+  # cache_control :public, max_age: 1800
+
+  @new_relic = NewRelic.new
+
+  erb :new_relic
 end
