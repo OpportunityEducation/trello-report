@@ -17,24 +17,24 @@
       <ul>
         <li>Uptime: <%= '100%' %></li>NOT AVAILABLE IN API - https://discuss.newrelic.com/t/feature-idea-query-uptime-available-in-the-api/31065
         <li>Requests: <%= "#{@new_relic.total_requests(2)}k (#{@new_relic.requests_per_minute(2)} requests per minute)" %></li>
-        <li>Error rate: <%= '0.016%' %></li>
-        <li>Average response time: <%= '97.1 milliseconds' %></li>
+        <li>Error rate: <%= "#{@new_relic.error_rate(0)}%" %></li>
+        <li>Average response time: <%= "#{@new_relic.average_response_time(2)}" %></li>
         <li>Request satisfaction (response in less than 0.5 seconds): <%= '98.4%' %></li>
       </ul>
       <h3><%= Time.now.prev_month.strftime('%B %Y') %></h3>
       <ul>
         <li>Uptime:</li>
         <li>Requests: <%= "#{@new_relic.total_requests(1)}k (#{@new_relic.requests_per_minute(1)} requests per minute)" %></li>
-        <li>Error rate: <%= '0.016%' %></li>
-        <li>Average response time: <%= '97.1 milliseconds' %></li>
+        <li>Error rate: <%= "#{@new_relic.error_rate(1)}%" %></li>
+        <li>Average response time: <%= "#{@new_relic.average_response_time(1)}" %></li>
         <li>Request satisfaction (response in less than 0.5 seconds): <%= '98.4%' %></li>
       </ul>
       <h3><%= Time.now.prev_month.prev_month.strftime('%B %Y') %></h3>
       <ul>
         <li>Uptime:</li>
-        <li>Requests: <%= "#{@new_relic.total_requests(0)}k (#{@new_relic.requests_per_minute(1)} requests per minute)" %></li>
-        <li>Error rate: <%= '0.016%' %></li>
-        <li>Average response time: <%= '97.1 milliseconds' %></li>
+        <li>Requests: <%= "#{@new_relic.total_requests(0)}k (#{@new_relic.requests_per_minute(0)} requests per minute)" %></li>
+        <li>Error rate: <%= "#{@new_relic.error_rate(2)}%" %></li>
+        <li>Average response time: <%= "#{@new_relic.average_response_time(0)}" %></li>
         <li>Request satisfaction (response in less than 0.5 seconds): <%= '98.4%' %></li>
       </ul>
     </div>

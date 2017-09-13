@@ -6,7 +6,8 @@ class NewRelic
               :total_requests,
               :requests_per_minute,
               :average_response_time,
-              :request_satisfaction
+              :request_satisfaction,
+              :error_rate
 
   def initialize
     @_api_key ||= ENV['NEW_RELIC_API_KEY']
@@ -33,10 +34,26 @@ class NewRelic
     parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:requests_per_minute]
   end
 
+  def error_rate(months_ago)
+    response = RestClient.
+      get("#{api_url}/metrics/data.json?names[]=Errors/all&values[]=errors_per_minute&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+
+    error_rate = parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:errors_per_minute]
+    (error_rate * 100).round(2)
+  end
+
   def average_response_time(months_ago)
+    response = RestClient.
+      get("#{api_url}/metrics/data.json?names[]=HttpDispatcher&values[]=average_call_time&values[]=call_count&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+
+    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:average_call_time]
   end
 
   def request_satisfaction(months_ago)
+    response = RestClient.
+      get("#{api_url}/metrics/data.json?names[]=Apdex&names[]=EndUser/Apdex&values[]=score&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+
+    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:score]
   end
 
   private
