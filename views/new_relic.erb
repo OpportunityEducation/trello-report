@@ -16,7 +16,7 @@
       <h3><%= "#{Time.now.strftime('%B %Y')} to-date" %></h3>
       <ul>
         <li>Uptime: <a href="https://discuss.newrelic.com/t/feature-idea-query-uptime-available-in-the-api/31065" target="_blank">NOT AVAILABLE IN API</a></li>
-        <li>Requests: <%= "#{@new_relic.total_requests(0)}k (#{@new_relic.requests_per_minute(0)} requests per minute)" %></li>
+        <li>Requests: <%= "#{@new_relic.total_requests_formatted(0)}k (#{@new_relic.requests_per_minute(0)} requests per minute)" %></li>
         <li>Error rate: <%= "#{@new_relic.error_rate(0)}%" %></li>
         <li>Average response time: <%= "#{@new_relic.average_response_time(0)} milliseconds" %></li>
         <li>Request satisfaction (response in less than 0.5 seconds): <%= "#{@new_relic.request_satisfaction(0)}%" %></li>
@@ -24,7 +24,7 @@
       <h3><%= Time.now.prev_month.strftime('%B %Y') %></h3>
       <ul>
         <li>Uptime: <a href="https://discuss.newrelic.com/t/feature-idea-query-uptime-available-in-the-api/31065" target="_blank">NOT AVAILABLE IN API</a></li>
-        <li>Requests: <%= "#{@new_relic.total_requests(1)}k (#{@new_relic.requests_per_minute(1)} requests per minute)" %></li>
+        <li>Requests: <%= "#{@new_relic.total_requests_formatted(1)}k (#{@new_relic.requests_per_minute(1)} requests per minute)" %></li>
         <li>Error rate: <%= "#{@new_relic.error_rate(1)}%" %></li>
         <li>Average response time: <%= "#{@new_relic.average_response_time(1)} milliseconds" %></li>
         <li>Request satisfaction (response in less than 0.5 seconds): <%= "#{@new_relic.request_satisfaction(1)}%" %></li>
@@ -32,7 +32,7 @@
       <h3><%= Time.now.prev_month.prev_month.strftime('%B %Y') %></h3>
       <ul>
         <li>Uptime: <a href="https://discuss.newrelic.com/t/feature-idea-query-uptime-available-in-the-api/31065" target="_blank">NOT AVAILABLE IN API</a></li>
-        <li>Requests: <%= "#{@new_relic.total_requests(2)}k (#{@new_relic.requests_per_minute(2)} requests per minute)" %></li>
+        <li>Requests: <%= "#{@new_relic.total_requests_formatted(2)}k (#{@new_relic.requests_per_minute(2)} requests per minute)" %></li>
         <li>Error rate: <%= "#{@new_relic.error_rate(2)}%" %></li>
         <li>Average response time: <%= "#{@new_relic.average_response_time(2)} milliseconds" %></li>
         <li>Request satisfaction (response in less than 0.5 seconds): <%= "#{@new_relic.request_satisfaction(2)}%" %></li>

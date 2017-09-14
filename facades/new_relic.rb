@@ -1,5 +1,5 @@
-require 'rest-client'
-require 'active_support/core_ext'
+require "rest-client"
+require "active_support/core_ext"
 
 class NewRelic
   attr_reader :uptime,
@@ -11,8 +11,8 @@ class NewRelic
               :time_frame
 
   def initialize
-    @_api_key ||= ENV['NEW_RELIC_API_KEY']
-    @_app_id ||= ENV['NEW_RELIC_APP_ID']
+    @_api_key ||= ENV["NEW_RELIC_API_KEY"]
+    @_app_id ||= ENV["NEW_RELIC_APP_ID"]
   end
 
   def uptime(months_ago)
@@ -23,32 +23,34 @@ class NewRelic
   end
 
   def total_requests(months_ago)
-    rpm = requests_per_minute(months_ago)
+    requests_per_minute(months_ago) * minutes_in_the_month(months_ago)
+  end
 
-    (rpm * minutes_in_the_month(months_ago) / 1000).floor
+  def total_requests_formatted(months_ago)
+    (total_requests(months_ago) / 1000).floor
   end
 
   def requests_per_minute(months_ago)
-    response = RestClient
-      .get("#{api_url}names[]=Agent/MetricsReported/count&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+    response = RestClient.
+      get("#{api_url}names[]=Agent/MetricsReported/count&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
 
     parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:requests_per_minute]
   end
 
   def error_count(months_ago)
     response = RestClient.
-      get("#{api_url}names[]=Errors/all&values[]=errors_per_minute&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+      get("#{api_url}names[]=Errors/all&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
 
-    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:errors_per_minute]
+    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:error_count]
   end
 
   def error_rate(months_ago)
-    '%.2f' % ((100 * error_count(months_ago)) / total_requests(months_ago))
+    "%.2f" % ((100 * error_count(months_ago)) / total_requests(months_ago))
   end
 
   def average_response_time(months_ago)
     response = RestClient.
-      get("#{api_url}names[]=HttpDispatcher&values[]=average_response_time&values[]=call_count&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+      get("#{api_url}names[]=HttpDispatcher&values[]=average_response_time&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
 
     parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:average_response_time]
   end
@@ -76,10 +78,8 @@ class NewRelic
         end_date = date
     end
 
-    start_date = start_date.iso8601.delete('Z')
-    end_date = end_date.iso8601.delete('Z')
-
-    "from=#{start_date}to=#{end_date}"
+    start_date = start_date.iso8601.delete("Z")
+    end_date = end_date.iso8601.delete("Z")
   end
 
   private
