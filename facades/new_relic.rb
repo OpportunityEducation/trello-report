@@ -31,8 +31,9 @@ class NewRelic
   end
 
   def requests_per_minute(months_ago)
-    response = RestClient.
-      get("#{api_url}names[]=Agent/MetricsReported/count&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+    url = "#{api_url}names[]=Agent/MetricsReported/count&#{time_frame(months_ago)}&summarize=true"
+
+    response = RestClient.get(url, headers = { "x-api-key": api_key })
 
     parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:requests_per_minute]
   end
@@ -78,8 +79,10 @@ class NewRelic
         end_date = date
     end
 
-    start_date = start_date.iso8601.delete("Z")
-    end_date = end_date.iso8601.delete("Z")
+    start_date = start_date.iso8601.gsub("Z", '+00:00')
+    end_date = end_date.iso8601.gsub("Z", '+00:00')
+
+    "from=#{start_date}&to=#{end_date}"
   end
 
   private
