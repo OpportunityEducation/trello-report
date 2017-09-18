@@ -31,7 +31,7 @@ get '/' do
 end
 
 get '/new-relic' do
-  # cache_control :public, max_age: 1800
+  cache_control :public, max_age: 1800
 
   months = params[:months] || 3
   @summaries = (0..(months.to_i - 1)).collect{ |i| m = DateTime.now << i; NewRelic.new(OpenStruct.new(year: m.year, month: m.month)) }

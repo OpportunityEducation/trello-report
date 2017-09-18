@@ -14,7 +14,7 @@
         <h2>New Relics Metrics <small>Generated on <%= Time.now.utc.strftime('%B %-d') %></small></h2>
       </div>
       <% @summaries.each do |summary| %>
-        <h3><%= "#{summary.month}, #{summary.year}" %></h3>
+        <h3><%= "#{Date::MONTHNAMES[summary.month]}, #{summary.year}" %></h3>
         <ul>
           <li>Uptime: <a href="https://discuss.newrelic.com/t/feature-idea-query-uptime-available-in-the-api/31065" target="_blank">NOT AVAILABLE IN API</a></li>
           <li>Requests: <%= "#{summary.total_requests_formatted}k (#{summary.requests_per_minute} requests per minute)" %></li>
