@@ -2,87 +2,68 @@ require "rest-client"
 require "active_support/core_ext"
 
 class NewRelic
-  attr_reader :uptime,
-              :total_requests,
-              :requests_per_minute,
-              :average_response_time,
-              :request_satisfaction,
-              :error_rate,
-              :time_frame
-
-  def initialize
+  attr_reader :start_time, :end_time, :minutes_in_the_month, :month, :year, :time_frame
+#
+  def initialize(args)
     @_api_key ||= ENV["NEW_RELIC_API_KEY"]
     @_app_id ||= ENV["NEW_RELIC_APP_ID"]
+    @month = args.month
+    @year = args.year
+    @start_time = get_start_time
+    @end_time = get_end_time
+    @time_frame = get_formatted_time_frame
+    @minutes_in_the_month = in_current_month ? ((Time.now - Time.now.beginning_of_month) / 60) : Time.days_in_month(args.month, args.year)
   end
 
-  def uptime(months_ago)
-    response = RestClient.
-      get("#{api_url}names[]=Errors/all&values[]=error_count&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
-
-    response.body
+  def uptime
+    puts "does not exist"
   end
 
-  def total_requests(months_ago)
-    requests_per_minute(months_ago) * minutes_in_the_month(months_ago)
+  def total_requests
+    requests_per_minute * minutes_in_the_month
   end
 
-  def total_requests_formatted(months_ago)
-    (total_requests(months_ago) / 1000).floor
+  def total_requests_formatted
+    (total_requests / 1000).floor
   end
 
-  def requests_per_minute(months_ago)
-    url = "#{api_url}names[]=Agent/MetricsReported/count&#{time_frame(months_ago)}&summarize=true"
+  def requests_per_minute
+    url = "#{api_url}names[]=Agent/MetricsReported/count&#{time_frame}&summarize=true"
+    response = get(url)
 
-    response = RestClient.get(url, headers = { "x-api-key": api_key })
-
-    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:requests_per_minute]
+    parse(response).metric_data.metrics[0].timeslices[0].values.requests_per_minute
   end
 
-  def error_count(months_ago)
-    response = RestClient.
-      get("#{api_url}names[]=Errors/all&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+  def error_count
+    url ="#{api_url}names[]=Errors/all&#{time_frame}&summarize=true"
+    response = get(url)
 
-    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:error_count]
+    parse(response).metric_data.metrics[0].timeslices[0].values.error_count
   end
 
-  def error_rate(months_ago)
-    "%.2f" % ((100 * error_count(months_ago)) / total_requests(months_ago))
+  def error_rate
+    "%.2f" % ((100 * error_count) / total_requests)
   end
 
-  def average_response_time(months_ago)
-    response = RestClient.
-      get("#{api_url}names[]=HttpDispatcher&values[]=average_response_time&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+  def average_response_time
+    url = "#{api_url}names[]=HttpDispatcher&values[]=average_response_time&#{time_frame}&summarize=true"
+    response = get(url)
 
-    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:average_response_time]
+    parse(response).metric_data.metrics[0].timeslices[0].values.average_response_time
   end
 
-  def request_satisfaction(months_ago)
-    response = RestClient.
-      get("#{api_url}names[]=Apdex&names[]=EndUser/Apdex&values[]=score&#{time_frame(months_ago)}&summarize=true", headers={ "x-api-key": api_key })
+  def request_satisfaction
+    url = "#{api_url}names[]=Apdex&names[]=EndUser/Apdex&values[]=score&#{time_frame}&summarize=true"
+    response = get(url)
 
-    parse(response)[:metric_data][:metrics][0][:timeslices][0][:values][:score] * 100
+    parse(response).metric_data.metrics[0].timeslices[0].values.score * 100
   end
 
-  def time_frame(months_ago)
-    date = Time.now.utc
-    start_date, end_date = ""
+  def get_formatted_time_frame
+    formatted_start_time = start_time.iso8601.gsub("Z", '+00:00')
+    formatted_end_time = end_time.iso8601.gsub("Z", '+00:00')
 
-    case months_ago
-      when 2
-        start_date = date.prev_month.prev_month.beginning_of_month
-        end_date = date.prev_month.prev_month.end_of_month
-      when 1
-        start_date = date.prev_month.beginning_of_month
-        end_date = date.prev_month.end_of_month
-      when 0
-        start_date = date.beginning_of_month
-        end_date = date
-    end
-
-    start_date = start_date.iso8601.gsub("Z", '+00:00')
-    end_date = end_date.iso8601.gsub("Z", '+00:00')
-
-    "from=#{start_date}&to=#{end_date}"
+    "from=#{formatted_start_time}&to=#{formatted_end_time}"
   end
 
   private
@@ -98,18 +79,32 @@ class NewRelic
     "https://api.newrelic.com/v2/applications/" + app_id + "/metrics/data.json?"
   end
 
-  def minutes_in_the_month(months_ago)
-    case months_ago
-      when 2
-        Time.days_in_month(Time.now.prev_month.prev_month.month, Time.now.prev_month.prev_month.year) * 24 * 60
-      when 1
-        Time.days_in_month(Time.now.prev_month.month, Time.now.prev_month.year) * 24 * 60
-      when 0
-        ((Time.now - Time.now.beginning_of_month) / 60)
-    end
+  def get(url)
+    RestClient.get(url, headers={"x-api-key": api_key})
   end
 
   def parse(response)
-    JSON.parse(response.body, symbolize_names: true)
+    JSON.parse(response.body, object_class: OpenStruct)
+  end
+
+
+  def get_minutes_in_the_month
+    in_current_month ? ((Time.now - Time.now.beginning_of_month) / 60) : (Time.days_in_month(month, year) * 24 * 60)
+  end
+
+  def get_start_time
+    Time.new(year, month).at_beginning_of_month.utc
+  end
+
+  def get_end_time
+    if in_current_month
+      Time.now.utc
+    else
+      Time.new(year, month).at_end_of_month.utc
+    end
+  end
+
+  def in_current_month
+    Time.now.month == month && Time.now.year == year
   end
 end
